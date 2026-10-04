@@ -109,7 +109,7 @@ export const Members: React.FC = () => {
 
       {/* Members Table */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-        {loading && <TableSkeleton rows={5} cols={6} />}
+        {loading && <TableSkeleton rows={8} cols={6} />}
 
         {error && !loading && (
           <ErrorState
@@ -138,7 +138,6 @@ export const Members: React.FC = () => {
                 <tr className="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50/80 dark:bg-slate-800/60 sticky top-0">
                   <th scope="col" className="py-3.5 px-4">Member</th>
                   <th scope="col" className="py-3.5 px-4">Registration No.</th>
-                  <th scope="col" className="py-3.5 px-4">Discord ID</th>
                   <th scope="col" className="py-3.5 px-4">Role</th>
                   <th scope="col" className="py-3.5 px-4">Account Status</th>
                   <th scope="col" className="py-3.5 px-4">Live Presence</th>
@@ -173,18 +172,6 @@ export const Members: React.FC = () => {
                           className="inline-flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer group"
                         >
                           <span>{user.registrationNo}</span>
-                          <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
-                      </td>
-
-                      <td className="py-3.5 px-4 font-mono text-xs text-slate-500 dark:text-slate-400">
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(user.discordUserId)}
-                          title="Click to copy Discord ID"
-                          className="inline-flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer group"
-                        >
-                          <span>{user.discordUserId}</span>
                           <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                       </td>

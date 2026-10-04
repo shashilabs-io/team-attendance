@@ -2,6 +2,8 @@ import { Schema, model, Document, Model, Types } from 'mongoose';
 import {
   AttendanceSessionStatus,
   ATTENDANCE_SESSION_STATUSES,
+  AttendanceSource,
+  ATTENDANCE_SOURCES,
 } from '../types/attendance.js';
 
 export interface IAttendanceSession {
@@ -13,6 +15,7 @@ export interface IAttendanceSession {
   checkOut?: Date;
   task?: string;
   remarks?: string;
+  source?: AttendanceSource;
   durationMinutes?: number;
   status: AttendanceSessionStatus;
   createdAt: Date;
@@ -91,6 +94,15 @@ const attendanceSessionSchema = new Schema<IAttendanceSession>(
       type: String,
       trim: true,
       maxlength: [1000, 'Remarks cannot exceed 1000 characters'],
+    },
+    source: {
+      type: String,
+      enum: {
+        values: ATTENDANCE_SOURCES,
+        message: '{VALUE} is not a valid attendance source',
+      },
+      default: 'DISCORD',
+      index: true,
     },
     durationMinutes: {
       type: Number,

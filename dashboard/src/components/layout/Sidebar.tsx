@@ -9,6 +9,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  FileText,
+  ExternalLink,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -109,6 +111,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </NavLink>
             );
           })}
+
+          {/* Google Form Link */}
+          <div className="pt-3 mt-3 border-t border-slate-800 dark:border-slate-800/80">
+            <a
+              href="https://forms.gle/W7mgqkCSUFThucJ3A"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={onClose}
+              title={isCollapsed ? 'Submit Attendance (Google Form)' : undefined}
+              aria-label="Submit attendance using Google Form"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800/80 hover:text-white border border-slate-800/70 hover:border-slate-700 group focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${
+                isCollapsed ? 'lg:justify-center' : 'justify-between'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <FileText className="w-4 h-4 shrink-0 text-blue-400 group-hover:text-blue-300" />
+                {!isCollapsed && <span className="truncate">Submit Attendance</span>}
+              </div>
+              {!isCollapsed && (
+                <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 shrink-0" />
+              )}
+            </a>
+          </div>
         </nav>
 
         {/* Collapse toggle (Desktop only) */}
@@ -130,19 +155,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </button>
         </div>
-
-        {/* System info / footer */}
-        {!isCollapsed && (
-          <div className="p-4 border-t border-slate-800 dark:border-slate-800/80 text-xs text-slate-400">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-slate-500">Edition</span>
-              <span className="font-mono text-slate-300 text-[11px]">Phase 8 Pro</span>
-            </div>
-            <div className="mt-1 text-[10px] text-slate-500">
-              Synced with Discord & MongoDB
-            </div>
-          </div>
-        )}
       </aside>
     </>
   );

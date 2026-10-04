@@ -54,6 +54,7 @@ export interface AttendanceSession {
   checkOut?: string;
   task?: string;
   remarks?: string;
+  source?: 'DISCORD' | 'GOOGLE_FORM' | string;
   durationMinutes?: number;
   status: 'ACTIVE' | 'COMPLETED';
   createdAt: string;
@@ -65,6 +66,7 @@ export interface ActiveMember {
   registrationNo: string;
   checkIn: string;
   task: string;
+  source?: 'DISCORD' | 'GOOGLE_FORM' | string;
   durationMinutes: number;
 }
 

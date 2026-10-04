@@ -28,6 +28,7 @@ const envSchema = z.object({
   DISCORD_TOKEN: z.string().optional(),
   DISCORD_GUILD_ID: z.string().optional(),
   ATTENDANCE_CHANNEL_ID: z.string().optional(),
+  GOOGLE_FORM_WEBHOOK_SECRET: z.string().default('team_attendance_gform_secret_2026'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

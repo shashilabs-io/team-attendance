@@ -38,6 +38,10 @@ export function errorHandler(
       err.code === 'ROUTE_NOT_FOUND'
     ) {
       statusCode = 404;
+    } else if (err.code === 'UNAUTHORIZED') {
+      statusCode = 401;
+    } else if (err.code === 'DUPLICATE_SUBMISSION') {
+      statusCode = 409;
     }
 
     res.status(statusCode).json({

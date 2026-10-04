@@ -100,7 +100,7 @@ export const TodayAttendance: React.FC<TodayAttendanceProps> = ({
                     </button>
                   </td>
                   <td
-                    className="py-3.5 px-3 text-slate-600 dark:text-slate-300 max-w-xs truncate"
+                    className="py-3.5 px-3 text-slate-600 dark:text-slate-300 max-w-sm truncate"
                     title={session.task}
                   >
                     {session.task || '-'}

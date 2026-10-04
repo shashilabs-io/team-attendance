@@ -54,6 +54,15 @@ export async function getUserByDiscordId(
 }
 
 /**
+ * Finds a user by their registration number.
+ */
+export async function getUserByRegistrationNo(
+  registrationNo: string
+): Promise<UserDocument | null> {
+  return User.findOne({ registrationNo: registrationNo.trim() }).exec();
+}
+
+/**
  * Finds an active team member by their Discord user ID.
  * Throws AppError if the user is not found or inactive.
  */
@@ -71,6 +80,32 @@ export async function getActiveTeamMemberByDiscordId(
 
   if (!user.isActive) {
     throw new AppError('USER_INACTIVE', 'Your account is inactive.');
+  }
+
+  return user;
+}
+
+/**
+ * Finds an active team member by their registration number.
+ * Throws AppError if the user is not found or inactive.
+ */
+export async function getActiveTeamMemberByRegistrationNo(
+  registrationNo: string
+): Promise<UserDocument> {
+  const user = await getUserByRegistrationNo(registrationNo);
+
+  if (!user) {
+    throw new AppError(
+      'USER_NOT_FOUND',
+      `No registered team member found with registration number: ${registrationNo.trim()}`
+    );
+  }
+
+  if (!user.isActive) {
+    throw new AppError(
+      'USER_INACTIVE',
+      `Account for registration number ${registrationNo.trim()} is currently inactive.`
+    );
   }
 
   return user;

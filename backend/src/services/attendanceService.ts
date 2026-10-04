@@ -1,22 +1,32 @@
 import mongoose, { ClientSession, FilterQuery } from 'mongoose';
 import { AttendanceSession, AttendanceSessionDocument } from '../models/AttendanceSession.js';
 import { AttendanceEvent, IAttendanceEvent } from '../models/AttendanceEvent.js';
-import { User } from '../models/User.js';
-import { getActiveTeamMemberByDiscordId } from './userService.js';
+import { User, UserDocument } from '../models/User.js';
+import {
+  getActiveTeamMemberByDiscordId,
+  getActiveTeamMemberByRegistrationNo,
+} from './userService.js';
 import { calculateDurationMinutes } from '../utils/duration.js';
 import { generateEventId } from '../utils/eventId.js';
 import { getTodayRange, parseDateRange } from '../utils/dateUtils.js';
 import { AppError } from '../utils/AppError.js';
+import type { AttendanceSource } from '../types/attendance.js';
 
 export interface CheckInParams {
-  discordUserId: string;
+  discordUserId?: string;
+  registrationNo?: string;
   task?: string;
   remarks?: string;
+  source?: AttendanceSource;
+  submissionId?: string;
 }
 
 export interface CheckOutParams {
-  discordUserId: string;
+  discordUserId?: string;
+  registrationNo?: string;
   task?: string;
+  source?: AttendanceSource;
+  submissionId?: string;
 }
 
 export interface CheckOutResult {
@@ -25,13 +35,13 @@ export interface CheckOutResult {
 }
 
 /**
- * Retrieves the currently ACTIVE attendance session for a Discord user, if one exists.
+ * Retrieves the currently ACTIVE attendance session for a user by Discord ID or Registration Number.
  */
 export async function getActiveSession(
-  discordUserId: string
+  identifier: string
 ): Promise<AttendanceSessionDocument | null> {
   return AttendanceSession.findOne({
-    discordUserId,
+    $or: [{ discordUserId: identifier }, { registrationNo: identifier }],
     status: 'ACTIVE',
   }).exec();
 }
@@ -43,15 +53,35 @@ export async function getActiveSession(
 export async function checkInUser(
   params: CheckInParams
 ): Promise<AttendanceSessionDocument> {
-  const { discordUserId, task, remarks } = params;
+  const { discordUserId, registrationNo, task, remarks, source = 'DISCORD', submissionId } = params;
 
   // 1-3. Find and validate active user
-  const user = await getActiveTeamMemberByDiscordId(discordUserId);
+  let user: UserDocument;
+  if (discordUserId) {
+    user = await getActiveTeamMemberByDiscordId(discordUserId);
+  } else if (registrationNo) {
+    user = await getActiveTeamMemberByRegistrationNo(registrationNo);
+  } else {
+    throw new AppError('VALIDATION_ERROR', 'discordUserId or registrationNo is required');
+  }
 
   // 4-5. Pre-check for existing active session
-  const existingActive = await getActiveSession(discordUserId);
+  const existingActive = await AttendanceSession.findOne({
+    userId: user._id,
+    status: 'ACTIVE',
+  }).exec();
   if (existingActive) {
     throw new AppError('ALREADY_CHECKED_IN', 'You are already checked in.');
+  }
+
+  // 4b. Check duplicate submissionId if provided
+  if (submissionId) {
+    const existingEvent = await AttendanceEvent.findOne({
+      'metadata.submissionId': submissionId,
+    }).exec();
+    if (existingEvent) {
+      throw new AppError('DUPLICATE_SUBMISSION', 'This submission has already been processed.');
+    }
   }
 
   const checkInTimestamp = new Date();
@@ -75,6 +105,7 @@ export async function checkInUser(
             checkIn: checkInTimestamp,
             task: normalizedTask,
             remarks: normalizedRemarks,
+            source,
             status: 'ACTIVE',
           },
         ],
@@ -98,6 +129,10 @@ export async function checkInUser(
             sessionId: sessionDoc._id,
             timestamp: checkInTimestamp,
             task: normalizedTask,
+            metadata: {
+              source,
+              ...(submissionId ? { submissionId } : {}),
+            },
           },
         ],
         { session: mongoSession }
@@ -138,15 +173,35 @@ export async function checkInUser(
 export async function checkOutUser(
   params: CheckOutParams
 ): Promise<CheckOutResult> {
-  const { discordUserId, task } = params;
+  const { discordUserId, registrationNo, task, source, submissionId } = params;
 
   // 1-2. Find and validate active user
-  const user = await getActiveTeamMemberByDiscordId(discordUserId);
+  let user: UserDocument;
+  if (discordUserId) {
+    user = await getActiveTeamMemberByDiscordId(discordUserId);
+  } else if (registrationNo) {
+    user = await getActiveTeamMemberByRegistrationNo(registrationNo);
+  } else {
+    throw new AppError('VALIDATION_ERROR', 'discordUserId or registrationNo is required');
+  }
 
   // 3-4. Find active session
-  const activeSession = await getActiveSession(discordUserId);
+  const activeSession = await AttendanceSession.findOne({
+    userId: user._id,
+    status: 'ACTIVE',
+  }).exec();
   if (!activeSession) {
     throw new AppError('NO_CHECK_IN', "You don't have an active check-in.");
+  }
+
+  // 3b. Check duplicate submissionId if provided
+  if (submissionId) {
+    const existingEvent = await AttendanceEvent.findOne({
+      'metadata.submissionId': submissionId,
+    }).exec();
+    if (existingEvent) {
+      throw new AppError('DUPLICATE_SUBMISSION', 'This submission has already been processed.');
+    }
   }
 
   // 5-6. Calculate checkout duration
@@ -156,6 +211,7 @@ export async function checkOutUser(
     checkOutTimestamp
   );
 
+  const eventSource = source || activeSession.source || 'DISCORD';
   const mongoSession = await mongoose.startSession();
 
   try {
@@ -184,6 +240,10 @@ export async function checkOutUser(
             sessionId: activeSession._id,
             timestamp: checkOutTimestamp,
             task: activeSession.task,
+            metadata: {
+              source: eventSource,
+              ...(submissionId ? { submissionId } : {}),
+            },
           },
         ],
         { session: mongoSession }
@@ -236,6 +296,7 @@ export interface AttendanceSessionDTO {
   checkOut?: Date;
   task?: string;
   remarks?: string;
+  source: string;
   durationMinutes?: number;
   status: string;
   createdAt: Date;
@@ -260,6 +321,7 @@ export interface ActiveMemberDTO {
   registrationNo: string;
   checkIn: Date;
   task: string;
+  source: string;
   durationMinutes: number;
 }
 
@@ -304,6 +366,7 @@ export function formatSessionDTO(
     checkOut: session.checkOut,
     task: session.task,
     remarks: session.remarks,
+    source: session.source || 'DISCORD',
     durationMinutes: session.durationMinutes,
     status: session.status,
     createdAt: session.createdAt,
@@ -404,6 +467,7 @@ export async function getActiveMembers(): Promise<ActiveMemberDTO[]> {
       registrationNo: session.registrationNo,
       checkIn: session.checkIn,
       task: session.task || 'Not specified',
+      source: session.source || 'DISCORD',
       durationMinutes,
     };
   });

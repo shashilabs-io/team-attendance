@@ -15,6 +15,7 @@
     "test:api": "tsx src/utils/testApiEndpoints.ts",
     "test:cleanup": "tsx src/utils/testDiscordCleanup.ts",
     "test:analytics": "tsx src/utils/testAnalytics.ts",
+    "test:googleform": "tsx src/utils/testGoogleFormIntegration.ts",
     "migrate:historical": "tsx src/scripts/migrateHistoricalAttendance.ts"
   },
   "dependencies": {

@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  Check,
   Search,
   X,
   Copy,
@@ -293,7 +292,7 @@ export const Attendance: React.FC = () => {
 
       {/* Main Table Card */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-        {loading && <TableSkeleton rows={7} cols={8} />}
+        {loading && <TableSkeleton rows={7} cols={7} />}
 
         {error && !loading && (
           <ErrorState
@@ -323,7 +322,6 @@ export const Attendance: React.FC = () => {
                     <th scope="col" className="py-3.5 px-4">Check In</th>
                     <th scope="col" className="py-3.5 px-4">Check Out</th>
                     <th scope="col" className="py-3.5 px-4">Duration</th>
-                    <th scope="col" className="py-3.5 px-4">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
@@ -350,7 +348,7 @@ export const Attendance: React.FC = () => {
                         </button>
                       </td>
                       <td
-                        className="py-3.5 px-4 text-slate-600 dark:text-slate-300 max-w-xs truncate"
+                        className="py-3.5 px-4 text-slate-600 dark:text-slate-300 max-w-md truncate"
                         title={session.task}
                       >
                         {session.task || '-'}
@@ -370,19 +368,6 @@ export const Attendance: React.FC = () => {
                           <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
                             <Clock className="w-3 h-3" />
                             In Progress
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        {session.status === 'ACTIVE' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            ACTIVE
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                            <Check className="w-3 h-3 text-slate-500 dark:text-slate-400" />
-                            COMPLETED
                           </span>
                         )}
                       </td>
