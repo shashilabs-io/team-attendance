@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800 dark:border-slate-800/80">
           <div className={`flex items-center gap-3 ${isCollapsed ? 'lg:justify-center w-full' : ''}`}>
             <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shadow-md shrink-0 border border-slate-700/50 bg-white">
-              <img src="/image.svg" alt="Neurals" className="w-full h-full object-contain p-0.5" />
+              <img src="/favicon.svg" alt="Neurals" className="w-full h-full object-contain p-0.5" />
             </div>
             {!isCollapsed && (
               <div className="overflow-hidden whitespace-nowrap">
