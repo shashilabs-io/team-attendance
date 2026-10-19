@@ -1,5 +1,8 @@
 node_modules
+dashboard/dist
 .env
 .env.*
 !.env.example
 *.log
+docs/google-form-attendance.md
+

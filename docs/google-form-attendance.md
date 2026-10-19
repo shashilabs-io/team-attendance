@@ -80,7 +80,7 @@ function onFormSubmit(e) {
         name = String(response).trim();
       } else if (/attendance\s*action|action/i.test(title)) {
         action = String(response).trim();
-      } else if (/^task/i.test(title)) {
+      } else if (/task|work/i.test(title)) {
         task = String(response).trim();
       } else if (/^remark/i.test(title)) {
         remarks = String(response).trim();
@@ -106,7 +106,7 @@ function onFormSubmit(e) {
       method: 'post',
       contentType: 'application/json',
       headers: {
-        'x-google-form-secret': WEBHOOK_SECRET
+        'x-webhook-secret': WEBHOOK_SECRET // Note: Google Apps Script passes x-webhook-secret without stripping
       },
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
@@ -157,7 +157,8 @@ GOOGLE_FORM_WEBHOOK_SECRET=your-secret-here
 ### Headers
 ```http
 Content-Type: application/json
-x-google-form-secret: your-secret-here
+x-webhook-secret: your-secret-here
+# (or x-google-form-secret if not calling from Google Apps Script)
 ```
 
 ### JSON Body Example
