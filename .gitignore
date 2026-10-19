@@ -4,4 +4,5 @@ dashboard/dist
 .env.*
 !.env.example
 *.log
+docs/google-form-attendance.md
 

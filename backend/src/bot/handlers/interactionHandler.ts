@@ -60,11 +60,11 @@ async function handleSlashCommand(
   const { commandName } = interaction;
 
   if (commandName === 'ci') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const payload = await prepareCheckInPrompt(interaction.user.id);
-    await interaction.reply({
+    await interaction.editReply({
       content: payload.content,
       components: payload.components,
-      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -83,7 +83,7 @@ async function handleSlashCommand(
 async function handleButton(interaction: ButtonInteraction): Promise<void> {
   const { customId } = interaction;
 
-  // 1. Enter Task button clicked -> show modal
+  // 1. Enter Task button clicked -> show modal (cannot deferReply before showModal)
   if (customId === ENTER_TASK_BUTTON_ID || customId === LEGACY_ENTER_TASK_BUTTON_ID) {
     const modal = buildTaskModal();
     await interaction.showModal(modal);
@@ -100,11 +100,11 @@ async function handleButton(interaction: ButtonInteraction): Promise<void> {
 
   // 3. Panel Check In button -> show check-in prompt
   if (customId === PANEL_CHECK_IN_BUTTON_ID || customId === LEGACY_PANEL_CHECK_IN_BUTTON_ID) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const payload = await prepareCheckInPrompt(interaction.user.id);
-    await interaction.reply({
+    await interaction.editReply({
       content: payload.content,
       components: payload.components,
-      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -166,7 +166,7 @@ async function handleInteractionError(
     interaction.isModalSubmit()
   ) {
     if (interaction.deferred) {
-      await interaction.editReply({ content: message });
+      await interaction.editReply({ content: message, components: [] });
     } else if (!interaction.replied) {
       await interaction.reply({
         content: message,
