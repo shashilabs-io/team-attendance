@@ -3,6 +3,7 @@ export type AppErrorCode =
   | 'USER_INACTIVE'
   | 'NAME_MISMATCH'
   | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
   | 'DUPLICATE_SUBMISSION'
   | 'ALREADY_CHECKED_IN'
   | 'NO_CHECK_IN'

@@ -3,15 +3,22 @@ import mongoose from 'mongoose';
 
 const router = Router();
 
-router.get('/', (_req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   const isConnected = mongoose.connection.readyState === 1;
 
   if (isConnected) {
-    return res.status(200).json({
-      success: true,
-      message: 'Team Attendance API is healthy',
-      database: 'connected',
-    });
+    try {
+      // Actively ping MongoDB Atlas to keep the TCP connection pool warm and active
+      await mongoose.connection.db?.admin().ping();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Team Attendance API is healthy',
+        database: 'connected',
+      });
+    } catch (pingError) {
+      console.warn('MongoDB ping failed during health check:', pingError);
+    }
   }
 
   return res.status(503).json({

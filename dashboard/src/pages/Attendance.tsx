@@ -11,6 +11,9 @@ import { ErrorState } from '../components/common/ErrorState';
 import { EmptyState } from '../components/common/EmptyState';
 import { TableSkeleton } from '../components/common/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
+import { QuickAttendanceWidget } from '../components/attendance/QuickAttendanceWidget';
+import { EditSessionModal } from '../components/attendance/EditSessionModal';
 import {
   Filter,
   RotateCcw,
@@ -20,10 +23,13 @@ import {
   Search,
   X,
   Copy,
+  Pencil,
 } from 'lucide-react';
 
 export const Attendance: React.FC = () => {
   const { showToast } = useToast();
+  const { isAdmin } = useAuth();
+  const [editingSession, setEditingSession] = useState<AttendanceSession | null>(null);
   const [sessions, setSessions] = useState<AttendanceSession[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -161,6 +167,9 @@ export const Attendance: React.FC = () => {
           Complete paginated audit log of team attendance sessions and working hours.
         </p>
       </div>
+
+      {/* Direct Web Attendance Action Widget */}
+      <QuickAttendanceWidget onAttendanceChanged={handleRetry} />
 
       {/* Filter Toolbar */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs transition-colors space-y-3">
@@ -322,6 +331,9 @@ export const Attendance: React.FC = () => {
                     <th scope="col" className="py-3.5 px-4">Check In</th>
                     <th scope="col" className="py-3.5 px-4">Check Out</th>
                     <th scope="col" className="py-3.5 px-4">Duration</th>
+                    {isAdmin && (
+                      <th scope="col" className="py-3.5 px-4 text-right">Actions</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
@@ -371,6 +383,19 @@ export const Attendance: React.FC = () => {
                           </span>
                         )}
                       </td>
+                      {isAdmin && (
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setEditingSession(session)}
+                            title="Edit session timestamps (Admin)"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Pencil className="w-3 h-3" />
+                            <span>Edit</span>
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -435,6 +460,13 @@ export const Attendance: React.FC = () => {
           </>
         )}
       </div>
+
+      <EditSessionModal
+        session={editingSession}
+        isOpen={!!editingSession}
+        onClose={() => setEditingSession(null)}
+        onSuccess={handleRetry}
+      />
     </div>
   );
 };

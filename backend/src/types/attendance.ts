@@ -4,7 +4,7 @@ export type AttendanceSessionStatus = 'ACTIVE' | 'COMPLETED';
 
 export type AttendanceEventType = 'CHECK_IN' | 'CHECK_OUT';
 
-export type AttendanceSource = 'DISCORD' | 'GOOGLE_FORM';
+export type AttendanceSource = 'DISCORD' | 'GOOGLE_FORM' | 'WEB';
 
 export const USER_ROLES: readonly UserRole[] = ['MEMBER', 'ADMIN'] as const;
 
@@ -21,4 +21,5 @@ export const ATTENDANCE_EVENT_TYPES: readonly AttendanceEventType[] = [
 export const ATTENDANCE_SOURCES: readonly AttendanceSource[] = [
   'DISCORD',
   'GOOGLE_FORM',
+  'WEB',
 ] as const;

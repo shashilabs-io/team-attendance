@@ -20,6 +20,7 @@ import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { ErrorState } from '../components/common/ErrorState';
 import { CardSkeleton } from '../components/common/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { QuickAttendanceWidget } from '../components/attendance/QuickAttendanceWidget';
 import {
   Users,
   Radio,
@@ -183,6 +184,9 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Direct Web Attendance Action Widget */}
+      <QuickAttendanceWidget onAttendanceChanged={() => loadDashboardData(true)} />
 
       {/* Today Quick Insights Strip */}
       {mostActiveToday && mostActiveToday.minutes > 0 && (

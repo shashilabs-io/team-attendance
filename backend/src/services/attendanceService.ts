@@ -714,3 +714,119 @@ export async function getAttendanceEvents(filters: {
     },
   };
 }
+
+export interface UpdateSessionAdminParams {
+  sessionId: string;
+  checkIn?: string | Date;
+  checkOut?: string | Date;
+  task?: string;
+  remarks?: string;
+  status?: 'ACTIVE' | 'COMPLETED';
+  adminName: string;
+  adminUserId: string;
+}
+
+/**
+ * Allows an administrator to manually adjust check-in, check-out, duration, and task details.
+ * Recomputes durationMinutes, validates time order, and writes an audit event.
+ */
+export async function updateSessionByAdmin(
+  params: UpdateSessionAdminParams
+): Promise<AttendanceSessionDTO> {
+  const { sessionId, checkIn, checkOut, task, remarks, status, adminName, adminUserId } = params;
+
+  if (!mongoose.Types.ObjectId.isValid(sessionId)) {
+    throw new AppError('SESSION_NOT_FOUND', 'Invalid attendance session ID.');
+  }
+
+  const session = await AttendanceSession.findById(sessionId).exec();
+  if (!session) {
+    throw new AppError('SESSION_NOT_FOUND', 'Attendance session not found.');
+  }
+
+  const prevCheckIn = session.checkIn;
+  const prevCheckOut = session.checkOut;
+  const prevStatus = session.status;
+  const prevDuration = session.durationMinutes;
+
+  let newCheckIn = session.checkIn;
+  if (checkIn) {
+    const parsed = new Date(checkIn);
+    if (isNaN(parsed.getTime())) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid check-in date format.');
+    }
+    newCheckIn = parsed;
+  }
+
+  let newCheckOut = session.checkOut;
+  if (checkOut !== undefined) {
+    if (checkOut === null || checkOut === '') {
+      newCheckOut = undefined;
+    } else {
+      const parsed = new Date(checkOut);
+      if (isNaN(parsed.getTime())) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid check-out date format.');
+      }
+      newCheckOut = parsed;
+    }
+  }
+
+  // Validate checkOut >= checkIn
+  if (newCheckOut && newCheckOut < newCheckIn) {
+    throw new AppError(
+      'VALIDATION_ERROR',
+      'Check-out time cannot be earlier than check-in time.'
+    );
+  }
+
+  session.checkIn = newCheckIn;
+  session.checkOut = newCheckOut;
+
+  // Determine session status and recalculate duration
+  if (newCheckOut) {
+    session.durationMinutes = calculateDurationMinutes(newCheckIn, newCheckOut);
+    session.status = status || 'COMPLETED';
+  } else {
+    session.durationMinutes = undefined;
+    session.status = 'ACTIVE';
+  }
+
+  if (task !== undefined) {
+    session.task = task.trim() || 'Not specified';
+  }
+
+  if (remarks !== undefined) {
+    session.remarks = remarks.trim();
+  }
+
+  await session.save();
+
+  // Record an immutable audit event for the administrative adjustment
+  try {
+    await AttendanceEvent.create({
+      eventId: generateEventId(),
+      userId: session.userId,
+      discordUserId: session.discordUserId,
+      registrationNo: session.registrationNo,
+      type: session.checkOut ? 'CHECK_OUT' : 'CHECK_IN',
+      sessionId: session._id,
+      timestamp: new Date(),
+      task: session.task,
+      metadata: {
+        source: 'WEB',
+        action: 'ADMIN_SESSION_UPDATE',
+        editedBy: adminName,
+        adminUserId: adminUserId,
+        previousCheckIn: prevCheckIn,
+        previousCheckOut: prevCheckOut,
+        previousStatus: prevStatus,
+        previousDurationMinutes: prevDuration,
+        updatedDurationMinutes: session.durationMinutes,
+      },
+    });
+  } catch (eventError) {
+    console.error('Failed to log admin attendance audit event:', eventError);
+  }
+
+  return formatSessionDTO(session);
+}

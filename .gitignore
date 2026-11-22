@@ -1,5 +1,7 @@
 node_modules
 dashboard/dist
+backend/dist
+.vscode/
 .env
 .env.*
 !.env.example

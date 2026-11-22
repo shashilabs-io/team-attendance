@@ -7,6 +7,7 @@ export interface IUser {
   discordUserId: string;
   role: UserRole;
   isActive: boolean;
+  password?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,6 +33,10 @@ const userSchema = new Schema<IUser>(
       required: [true, 'Discord user ID is required'],
       trim: true,
       unique: true,
+    },
+    password: {
+      type: String,
+      select: false,
     },
     role: {
       type: String,

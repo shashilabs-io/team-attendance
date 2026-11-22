@@ -20,21 +20,55 @@ import type {
   DurationDistribution,
   AttendanceHeatmap,
   PeriodComparison,
+  AuthUser,
+  LoginResponse,
+  CheckInParams,
+  CheckOutParams,
+  UpdateSessionParams,
 } from '../types/api';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://team-attendance-mz2k.onrender.com/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const TOKEN_STORAGE_KEY = 'team_attendance_token';
+
+export function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredToken(token: string): void {
+  try {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  } catch (err) {
+    console.error('Failed to save token to localStorage:', err);
+  }
+}
+
+export function clearStoredToken(): void {
+  try {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch (err) {
+    console.error('Failed to clear token from localStorage:', err);
+  }
+}
 
 /**
- * Standard fetch wrapper handling JSON parsing and error wrapping.
+ * Standard fetch wrapper handling JSON parsing, auth headers, and error wrapping.
  */
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
+  const token = getStoredToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options?.headers as Record<string, string>),
+  };
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -251,4 +285,78 @@ export async function getAttendanceEvents(
       totalPages: 1,
     },
   };
+}
+
+// ==========================================
+// AUTHENTICATION API METHODS
+// ==========================================
+
+export async function getDiscordAuthUrl(): Promise<{ url: string; configured: boolean }> {
+  const res = await request<ApiResponse<{ url: string; configured: boolean }>>('/auth/discord/url');
+  return res.data;
+}
+
+export function initiateDiscordLogin(): void {
+  window.location.href = `${BASE_URL}/auth/discord`;
+}
+
+export async function login(
+  registrationNo: string,
+  password?: string
+): Promise<LoginResponse> {
+  const res = await request<ApiResponse<LoginResponse>>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ registrationNo, password }),
+  });
+  if (res.data?.token) {
+    setStoredToken(res.data.token);
+  }
+  return res.data;
+}
+
+export async function getMe(): Promise<AuthUser> {
+  const res = await request<ApiResponse<AuthUser>>('/auth/me');
+  return res.data;
+}
+
+// ==========================================
+// WEB ATTENDANCE ACTION METHODS
+// ==========================================
+
+export async function checkIn(
+  params?: CheckInParams
+): Promise<AttendanceSession> {
+  const res = await request<ApiResponse<AttendanceSession>>('/attendance/check-in', {
+    method: 'POST',
+    body: JSON.stringify(params || {}),
+  });
+  return res.data;
+}
+
+export async function checkOut(
+  params?: CheckOutParams
+): Promise<{ session: AttendanceSession; durationMinutes: number }> {
+  const res = await request<ApiResponse<{ session: AttendanceSession; durationMinutes: number }>>(
+    '/attendance/check-out',
+    {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    }
+  );
+  return res.data;
+}
+
+// ==========================================
+// ADMIN SESSION MODIFICATION METHODS
+// ==========================================
+
+export async function updateSessionAdmin(
+  id: string,
+  params: UpdateSessionParams
+): Promise<AttendanceSession> {
+  const res = await request<ApiResponse<AttendanceSession>>(`/attendance/sessions/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(params),
+  });
+  return res.data;
 }

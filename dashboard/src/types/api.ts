@@ -19,6 +19,36 @@ export interface Pagination {
   totalPages: number;
 }
 
+export interface AuthUser {
+  id: string;
+  name: string;
+  registrationNo: string;
+  role: 'MEMBER' | 'ADMIN';
+  discordUserId?: string;
+}
+
+export interface LoginResponse {
+  user: AuthUser;
+  token: string;
+}
+
+export interface CheckInParams {
+  task?: string;
+  remarks?: string;
+}
+
+export interface CheckOutParams {
+  task?: string;
+}
+
+export interface UpdateSessionParams {
+  checkIn?: string;
+  checkOut?: string;
+  task?: string;
+  remarks?: string;
+  status?: 'ACTIVE' | 'COMPLETED';
+}
+
 export interface User {
   id: string;
   name: string;

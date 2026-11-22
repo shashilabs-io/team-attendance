@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu, RefreshCw, Sun, Moon } from 'lucide-react';
+import { Menu, RefreshCw, Sun, Moon, LogOut } from 'lucide-react';
 import { checkHealth } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import { LoginModal } from '../auth/LoginModal';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -19,7 +21,9 @@ export const Header: React.FC<HeaderProps> = ({
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { showToast } = useToast();
+  const { user, isAuthenticated, logout } = useAuth();
 
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [checking, setChecking] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -224,7 +228,57 @@ export const Header: React.FC<HeaderProps> = ({
             <Sun className="w-4 h-4 text-amber-400" />
           )}
         </button>
+
+        {/* User Auth Section */}
+        {isAuthenticated && user ? (
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
+            <div className="hidden sm:flex flex-col items-end text-right">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-900 dark:text-white leading-none">
+                  {user.name}
+                </span>
+                {user.role === 'ADMIN' && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800/60">
+                    ADMIN
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                {user.registrationNo}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={logout}
+              title="Sign Out"
+              aria-label="Sign Out"
+              className="p-2 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsLoginModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-[#5865F2] hover:bg-[#4752C4] active:bg-[#3c45a5] transition-colors shadow-xs shadow-[#5865F2]/20 cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 127.14 96.36">
+              <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.87,53,48.83,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.11,53,91.08,65.69,84.69,65.69Z" />
+            </svg>
+            <span>Sign In</span>
+          </button>
+        )}
       </div>
+
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
     </header>
   );
 };

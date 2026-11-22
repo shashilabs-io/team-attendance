@@ -193,3 +193,100 @@ export async function getEventsHandler(
     next(error);
   }
 }
+
+/**
+ * POST /api/attendance/check-in
+ * Allows an authenticated team member to check in directly from the website.
+ */
+export async function webCheckInHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const user = (req as any).user;
+    const { task, remarks } = req.body;
+
+    const session = await attendanceService.checkInUser({
+      registrationNo: user.registrationNo,
+      task,
+      remarks,
+      source: 'WEB',
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Checked in successfully as ${user.name}`,
+      data: attendanceService.formatSessionDTO(session),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/attendance/check-out
+ * Allows an authenticated team member to check out directly from the website.
+ */
+export async function webCheckOutHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const user = (req as any).user;
+    const { task } = req.body;
+
+    const result = await attendanceService.checkOutUser({
+      registrationNo: user.registrationNo,
+      task,
+      source: 'WEB',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Checked out successfully. Duration: ${result.durationMinutes} minutes`,
+      data: {
+        session: attendanceService.formatSessionDTO(result.session),
+        durationMinutes: result.durationMinutes,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /api/attendance/sessions/:id
+ * Allows an administrator to manually adjust check-in, check-out, duration, and task details.
+ */
+export async function updateSessionAdminHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const id = req.params.id as string;
+    const admin = (req as any).user;
+    const { checkIn, checkOut, task, remarks, status } = req.body;
+
+    const updatedSession = await attendanceService.updateSessionByAdmin({
+      sessionId: id,
+      checkIn,
+      checkOut,
+      task,
+      remarks,
+      status,
+      adminName: admin.name,
+      adminUserId: admin.id,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Attendance session updated successfully.',
+      data: updatedSession,
+    });
+  } catch (error) {
+    next(error);
+  }
+}

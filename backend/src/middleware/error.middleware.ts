@@ -40,6 +40,8 @@ export function errorHandler(
       statusCode = 404;
     } else if (err.code === 'UNAUTHORIZED') {
       statusCode = 401;
+    } else if (err.code === 'FORBIDDEN') {
+      statusCode = 403;
     } else if (err.code === 'DUPLICATE_SUBMISSION') {
       statusCode = 409;
     }

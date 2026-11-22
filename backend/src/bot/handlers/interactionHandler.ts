@@ -75,6 +75,14 @@ async function handleSlashCommand(
     await interaction.editReply(reply);
     return;
   }
+
+  console.warn(`Unknown slash command received: ${commandName}`);
+  if (!interaction.replied && !interaction.deferred) {
+    await interaction.reply({
+      content: '❌ Unknown command.',
+      flags: MessageFlags.Ephemeral,
+    });
+  }
 }
 
 /**
@@ -116,6 +124,14 @@ async function handleButton(interaction: ButtonInteraction): Promise<void> {
     await interaction.editReply(reply);
     return;
   }
+
+  console.warn(`Unknown button customId received: ${customId}`);
+  if (!interaction.replied && !interaction.deferred) {
+    await interaction.reply({
+      content: '❌ Unknown or expired button action.',
+      flags: MessageFlags.Ephemeral,
+    });
+  }
 }
 
 /**
@@ -132,6 +148,15 @@ async function handleModalSubmit(
 
     const reply = await executeCheckIn(interaction.user.id, task);
     await interaction.editReply(reply);
+    return;
+  }
+
+  console.warn(`Unknown modal customId received: ${interaction.customId}`);
+  if (!interaction.replied && !interaction.deferred) {
+    await interaction.reply({
+      content: '❌ Unknown modal submission.',
+      flags: MessageFlags.Ephemeral,
+    });
   }
 }
 
@@ -165,13 +190,17 @@ async function handleInteractionError(
     interaction.isButton() ||
     interaction.isModalSubmit()
   ) {
-    if (interaction.deferred) {
-      await interaction.editReply({ content: message, components: [] });
-    } else if (!interaction.replied) {
-      await interaction.reply({
-        content: message,
-        flags: MessageFlags.Ephemeral,
-      });
+    try {
+      if (interaction.deferred) {
+        await interaction.editReply({ content: message, components: [] });
+      } else if (!interaction.replied) {
+        await interaction.reply({
+          content: message,
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    } catch (replyError) {
+      console.error('Failed to send error reply to Discord interaction:', replyError);
     }
   }
 }

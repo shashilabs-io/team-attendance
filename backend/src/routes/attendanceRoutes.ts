@@ -8,9 +8,13 @@ import {
   getDailyStatsHandler,
   getMemberStatsHandler,
   getEventsHandler,
+  webCheckInHandler,
+  webCheckOutHandler,
+  updateSessionAdminHandler,
 } from '../controllers/attendanceController.js';
 import * as analyticsController from '../controllers/analyticsController.js';
 import { validateQuery } from '../middleware/validate.js';
+import { authenticateUser, requireAdmin } from '../middleware/auth.middleware.js';
 import {
   attendanceFilterSchema,
   statsFilterSchema,
@@ -102,5 +106,18 @@ router.get('/', validateQuery(attendanceFilterSchema), getAttendanceHandler);
 
 // GET /api/attendance/:id (single session)
 router.get('/:id', getSessionByIdHandler);
+
+// ==========================================
+// WEB ACTIONS & ADMIN CONTROLS
+// ==========================================
+
+// POST /api/attendance/check-in (Authenticated member)
+router.post('/check-in', authenticateUser, webCheckInHandler);
+
+// POST /api/attendance/check-out (Authenticated member)
+router.post('/check-out', authenticateUser, webCheckOutHandler);
+
+// PATCH /api/attendance/sessions/:id (Administrator only)
+router.patch('/sessions/:id', authenticateUser, requireAdmin, updateSessionAdminHandler);
 
 export default router;
