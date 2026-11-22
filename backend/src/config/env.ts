@@ -28,8 +28,10 @@ const envSchema = z.object({
   DISCORD_TOKEN: z.string().optional(),
   DISCORD_CLIENT_ID: z.string().default('1555940627714277498'),
   DISCORD_CLIENT_SECRET: z.string().optional(),
-  DISCORD_REDIRECT_URI: z.string().default('http://localhost:5000/api/auth/discord/callback'),
-  FRONTEND_URL: z.string().default('http://localhost:5173'),
+  DISCORD_REDIRECT_URI: z
+    .string()
+    .default('https://neuralsattendance.netlify.app/api/auth/discord/callback'),
+  FRONTEND_URL: z.string().default('https://neuralsattendance.netlify.app'),
   DISCORD_GUILD_ID: z.string().optional(),
   ATTENDANCE_CHANNEL_ID: z.string().optional(),
   GOOGLE_FORM_WEBHOOK_SECRET: z.string().default('team_attendance_gform_secret_2026'),

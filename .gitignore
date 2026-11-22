@@ -2,6 +2,7 @@ node_modules
 dashboard/dist
 backend/dist
 .vscode/
+New folder/
 .env
 .env.*
 !.env.example
