@@ -27,7 +27,7 @@ import type {
   UpdateSessionParams,
 } from '../types/api';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://team-attendance-qkge.onrender.com/api';
 const TOKEN_STORAGE_KEY = 'team_attendance_token';
 
 export function getStoredToken(): string | null {

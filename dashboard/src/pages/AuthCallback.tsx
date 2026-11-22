@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { setStoredToken } from '../services/api';
+import { setStoredToken, initiateDiscordLogin } from '../services/api';
 import { AlertTriangle, CheckCircle, ArrowLeft, RefreshCw, KeyRound, HelpCircle } from 'lucide-react';
 
 export const AuthCallback: React.FC = () => {
@@ -145,7 +145,7 @@ export const AuthCallback: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  window.location.href = '/api/auth/discord';
+                  initiateDiscordLogin();
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs font-semibold shadow-xs transition-colors"
               >
